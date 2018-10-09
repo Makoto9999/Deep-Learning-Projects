@@ -1,2 +1,3 @@
 # Deep-Learning-Projects
-## Bacterium Detection
+## Bacterium Detection - Neural Network
+## Flower Detection - CNN
