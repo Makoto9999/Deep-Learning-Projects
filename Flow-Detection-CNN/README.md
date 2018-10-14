@@ -55,8 +55,8 @@
       40, val_acc, 0.9333333373069763
 
 ## Save the top model with the highest validation accuracy
-  saver = tf.train.Saver(max_to_keep=1)
-  saver.save(sess, './path/ckpt/flower.ckpt')
+saver = tf.train.Saver(max_to_keep=1)
+saver.save(sess, './path/ckpt/flower.ckpt')
 
 ## Restore saved model
     # loade the graph of the model
