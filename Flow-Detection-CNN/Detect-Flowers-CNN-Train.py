@@ -4,15 +4,16 @@ import os
 import tensorflow as tf
 import numpy as np
 import time
+from sklearn import metrics
 
-path='/path'
+path='./path/Iris_Imgs'
 
-# resize all images to 200*200
+# set images to 200*200
 w = 200
 h = 200
 c = 3
 
-# read images
+# read images with folders's names as labels
 def read_img(path):
     cate = [path + '/' + x for x in os.listdir(path) if os.path.isdir(path + '/' + x)]
     imgs = []
@@ -69,7 +70,7 @@ def minibatches(inputs=None, targets=None, batch_size=None, shuffle=False):
         yield inputs[excerpt], targets[excerpt]
 
 #-----------------build CNN----------------------
-# placeholder
+# placeholders
 x=tf.placeholder(tf.float32,shape=[None,w,h,c],name='x')
 y_=tf.placeholder(tf.int32,shape=[None,],name='y_')
 
@@ -105,88 +106,105 @@ def CNNlayer():
         kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2)
 
-    # # 4th Conv(25->12)
-    # conv4 = tf.layers.conv2d(
-    #     inputs=pool3,
-    #     filters=128,
-    #     kernel_size=[3, 3],
-    #     padding="same",
-    #     activation=tf.nn.relu,
-    #     kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
-    # pool4 = tf.layers.max_pooling2d(inputs=conv4, pool_size=[2, 2], strides=2)
-
-    re1 = tf.reshape(pool3, [-1, 25 * 25 * 128])
+    # flatten the layer
+    flattened = tf.contrib.layers.flatten(pool3)
 
     # Fully connected
-    dense1 = tf.layers.dense(inputs=re1,
-                             units=64,
+    dense1 = tf.layers.dense(inputs=flattened,
+                             units=512,
                              activation=tf.nn.relu,
                              kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
-                             # kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001)
+                             kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001)
                              )
-    dense1_dropout = tf.nn.dropout(dense1,0.8)
-    # dense2 = tf.layers.dense(inputs=dense1,
-    #                          units=24,
-    #                          activation=tf.nn.relu,
-    #                          kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
-    #                          kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
-    # dense2_dropout = tf.nn.dropout(dense2,0.8)
-    logits = tf.layers.dense(inputs=dense1_dropout,
+
+    logits = tf.layers.dense(inputs=dense1,
                              units=3,
                              activation=None,
                              kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
-                             kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
-    # softmax
+                             kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001)
+                             )
+    # softmax layers
     softmax = tf.contrib.layers.softmax(logits)
 
     return softmax
 
 #-----------------CNN ends----------------------
 
-
+# setup tensors
 softmax = CNNlayer()
 loss = tf.losses.sparse_softmax_cross_entropy(labels=y_,logits=softmax)
-train_op = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+train_op = tf.train.AdamOptimizer(learning_rate=0.0005).minimize(loss)
 correct_prediction = tf.equal(tf.cast(tf.argmax(softmax,1),tf.int32), y_)
 acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+predict = tf.argmax(softmax, 1)
 
-
-saver = tf.train.Saver(max_to_keep=3)
+# setup the number of model to save
+saver = tf.train.Saver(max_to_keep=1)
 max_acc = 0
-f = open('/path', 'w')
+f = open('./path/acc.csv', 'w')
 
-n_epoch = 2
+# Setup the epochs and batch size
+n_epoch = 40
 batch_size = 15
-sess = tf.InteractiveSession()
-sess.run(tf.global_variables_initializer())
-for epoch in range(n_epoch):
-    start_time = time.time()
 
-    # training
-    train_loss, train_acc, n_batch = 0, 0, 0
-    for x_train_a, y_train_a in minibatches(x_train, y_train, batch_size, shuffle=True):
-        _, err, ac = sess.run([train_op, loss, acc], feed_dict={x: x_train_a, y_: y_train_a})
-        train_loss += err
-        train_acc += ac
-        n_batch += 1
-    print("   train loss: %f" % (train_loss / n_batch))
-    print("   train acc: %f" % (train_acc / n_batch))
 
-    # validation
-    val_loss, val_acc, n_batch = 0, 0, 0
-    for x_val_a, y_val_a in minibatches(x_val, y_val, batch_size, shuffle=False):
-        err, ac = sess.run([loss, acc], feed_dict={x: x_val_a, y_: y_val_a})
-        val_loss += err
-        val_acc += ac
-        n_batch += 1
-    print("   validation loss: %f" % (val_loss / n_batch))
-    print("   validation acc: %f\n" % (val_acc / n_batch))
+print("Starting Training Session...")
+with tf.Session() as sess:
+    # initialize the 1st session
+    sess.run(tf.global_variables_initializer())
+    for epoch in range(n_epoch):
+        start_time = time.time()
 
-    f.write(str(epoch + 1) + ', val_acc, ' + str(val_acc/ n_batch) + '\n')
-    if val_acc > max_acc:
-        max_acc = val_acc
-        saver.save(sess, '/path', global_step=epoch + 1)
+        # training
+        train_loss, train_acc, n_batch = 0, 0, 0
+        for x_train_a, y_train_a in minibatches(x_train, y_train, batch_size, shuffle=True):
+            _, err, ac = sess.run([train_op, loss, acc], feed_dict={x: x_train_a, y_: y_train_a})
+            train_loss += err
+            train_acc += ac
+            n_batch += 1
+        print("   train loss: %f" % (train_loss / n_batch))
+        print("   train acc: %f" % (train_acc / n_batch))
 
+        # validation
+        val_loss, val_acc, n_batch = 0, 0, 0
+        for x_val_a, y_val_a in minibatches(x_val, y_val, batch_size, shuffle=False):
+            err, ac, pred = sess.run([loss, acc, predict], feed_dict={x: x_val_a, y_: y_val_a})
+            val_loss += err
+            val_acc += ac
+            n_batch += 1
+        print("   validation loss: %f" % (val_loss / n_batch))
+        print("   validation acc: %f\n" % (val_acc / n_batch))
+
+        # save the training result in a CSV file
+        f.write(str(epoch + 1) + ', val_acc, ' + str(val_acc/ n_batch) + '\n')
+
+        # store the parameters of trained CNN with highest validation accuracy
+        if val_acc > max_acc:
+            max_acc = val_acc
+            saver.save(sess,
+                       './path/ckpt/flower.ckpt')
 f.close()
-sess.close()
+
+print("Starting Predicting Session...")
+with tf.Session() as sess:
+    # initialize the 2nd session
+    sess.run(tf.global_variables_initializer())
+
+    # loade the graph of the model
+    saver = tf.train.import_meta_graph(
+            './path/ckpt/flower.ckpt.meta')
+    # restore the parameters of the model
+    saver.restore(sess,
+            './path/ckpt/flower.ckpt')
+    print("Model restored.\n")
+
+    # show the result of prediction on test data
+    pred = sess.run(predict, feed_dict={x: x_val})
+    accuracy = metrics.accuracy_score(y_val,pred)
+    print('Predicted label:', pred)
+    print('  True label   :', y_val)
+    print('   Accuracy    :', accuracy)
+
+    # show confusion matrix
+    print('\n confusion matrix:\n', metrics.confusion_matrix(y_val, pred))
 
