@@ -69,8 +69,8 @@
     Model restored.
 
     Predicted label: [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2]
-      True label  : [0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2]
-       Accuracy  : 0.9666666666666667
+      True label   : [0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2]
+       Accuracy    : 0.9666666666666667
 
      confusion matrix:
      [[ 9  1  0]
