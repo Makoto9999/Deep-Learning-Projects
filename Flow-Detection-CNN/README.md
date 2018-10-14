@@ -1,13 +1,13 @@
 # Flower Detection
 150 records of 4-dimension dataset, belonging to 3 types of flowers.
 ## Build CNN network with 3 convolutional layers and 2 fully connected layers.
-###Convolutional layers:
+### Convolutional layers:
      input size: (200*200*3)
      output size: (25*25*128)
-###Fully connected layers:
+### Fully connected layers:
      input size: flatten(25*25*128)
      output size: 3
-###Softmax:
+### Softmax:
      output size:3
      
 ## Save the training results as a csv file
