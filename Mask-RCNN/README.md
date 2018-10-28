@@ -6,6 +6,7 @@ Refrence: https://github.com/Makoto9999/Mask_RCNN
       pip3 install -r requirements.txt
   
 #### 2.Clone this repository
+      https://github.com/Makoto9999/Mask_RCNN
 
 #### 3.Run setup from the repository root directory
       python3 setup.py install
