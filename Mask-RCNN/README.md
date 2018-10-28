@@ -17,14 +17,16 @@ Refrence: https://github.com/Makoto9999/Mask_RCNN
       python3 setup.py install
       
 #### 5.Install pycocotools
-   ##### colone this repo
+
+##### 5.1 colone this repo
       git clone https://github.com/philferriere/cocoapi.git
       
-   ##### use pip to install pycocotools
+##### 5.2 use pip to install pycocotools
       pip install git+https://github.com/philferriere/cocoapi.git#subdirectory=PythonAPI
       
-   ##### if it shows error about requirement of Visual C++, install Microsoft Build Tools 2017
+##### 5.3 if it shows error about requirement of Visual C++, install Microsoft Build Tools 2017
       https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017
+      
       
 #### 6.Download pre-trained COCO weights (mask_rcnn_coco.h5) from the releases page.
       https://github.com/matterport/Mask_RCNN/releases
