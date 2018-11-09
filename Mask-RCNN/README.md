@@ -13,7 +13,7 @@ Refrence: https://github.com/Makoto9999/Mask_RCNN
       update tensorflow
   
 #### 3.Clone matterport Mask-RCNN repository
-      git clone https://github.com/matterport/Mask_RCNN
+      git clone https://github.com/matterport/Mask_RCNN.git
 
 #### 4.Run setup from the repository root directory
       python3 setup.py install
